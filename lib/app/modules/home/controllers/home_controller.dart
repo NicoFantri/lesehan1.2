@@ -1,0 +1,427 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import '../models/food_item.dart';
+import 'order_controller.dart';
+
+class HomeController extends GetxController {
+
+  var selectedCategory = 'Nasi'.obs;
+  var cartItems = 0.obs;
+  var orderItems = <OrderItem>[].obs;
+  var totalAmount = 0.0.obs;
+  var discountAmount = 0.0.obs;
+  var orders = <Map<String, dynamic>>[].obs;
+
+
+  final categories = [
+    {'icon': '🍚', 'name': 'Nasi'},
+    {'icon': '🍖', 'name': 'Ayam'},
+    {'icon': '🐟', 'name': 'Ikan'},
+    {'icon': '🥤', 'name': 'Minuman'},
+    {'name': 'Daging', 'icon': '🍖'},
+  ];
+
+
+
+  final popularItems = [
+    // Nasi Items
+    FoodItem(
+      name: 'Nasi Pecel',
+      image: 'assets/nasi_pecel.jpg',
+      price: 25000.0,
+      description: 'Dengan sayur dan bumbu pecel',
+    ),
+    FoodItem(
+      name: 'Nasi Kuning',
+      image: 'assets/nasi_kuning.jpg',
+      price: 26000.0,
+      description: 'Nasi kuning special dengan lauk pilihan',
+    ),
+    FoodItem(
+      name: 'Nasi Goreng',
+      image: 'assets/nasi_goreng.jpg',
+      price: 30000.0,
+      description: 'Nasi goreng spesial dengan telur',
+    ),
+
+    // Ayam Items
+    FoodItem(
+      name: 'Ayam Panggang',
+      image: 'assets/ayam_panggang.jpg',
+      price: 30000.0,
+      description: 'Ayam panggang dengan bumbu special',
+    ),
+    FoodItem(
+      name: 'Ayam Goreng Crispy',
+      image: 'assets/ayam_crispy.jpg',
+      price: 28000.0,
+      description: 'Ayam goreng renyah berlapis tepung',
+    ),
+    FoodItem(
+      name: 'Ayam Bakar Madu',
+      image: 'assets/ayam_bakar_madu.jpg',
+      price: 32000.0,
+      description: 'Ayam bakar dengan saus madu manis',
+    ),
+
+    // Ikan Items
+    FoodItem(
+      name: 'Ikan Bakar',
+      image: 'assets/ikan_bakar.jpg',
+      price: 28000.0,
+      description: 'Ikan bakar dengan sambal',
+    ),
+    FoodItem(
+      name: 'Ikan Goreng Tepung',
+      image: 'assets/ikan_goreng.jpg',
+      price: 26000.0,
+      description: 'Ikan goreng berlapis tepung renyah',
+    ),
+    FoodItem(
+      name: 'Gurame Asam Manis',
+      image: 'assets/gurame_asam_manis.jpg',
+      price: 35000.0,
+      description: 'Gurame segar dengan saus asam manis',
+    ),
+
+    // Daging Items
+    FoodItem(
+      name: 'Rawon',
+      image: 'assets/rawon.jpg',
+      price: 25000.0,
+      description: 'Rawon daging sapi',
+    ),
+    FoodItem(
+      name: 'Sop Buntut',
+      image: 'assets/sop_buntut.jpg',
+      price: 45000.0,
+      description: 'Sop buntut lezat dengan sayuran segar',
+    ),
+    FoodItem(
+      name: 'Rendang',
+      image: 'assets/rendang.jpg',
+      price: 40000.0,
+      description: 'Rendang daging sapi empuk',
+    ),
+
+    // Minuman Items
+    FoodItem(
+      name: 'Es Teh Manis',
+      image: 'assets/es_teh.jpg',
+      price: 5000.0,
+      description: 'Es teh manis segar',
+    ),
+    FoodItem(
+      name: 'Jus Jeruk',
+      image: 'assets/jus_jeruk.jpg',
+      price: 10000.0,
+      description: 'Jus jeruk segar tanpa tambahan gula',
+    ),
+    FoodItem(
+      name: 'Teh Hangat',
+      image: 'assets/teh_hangat.jpg',
+      price: 5000.0,
+      description: 'Teh hangat berkualitas',
+    ),
+  ];
+
+  void _showCustomSnackbar({
+    required String title,
+    required String message,
+    Color backgroundColor = Colors.green,
+    IconData icon = Icons.check_circle,
+    SnackPosition position = SnackPosition.TOP,
+  }) {
+    Get.snackbar(
+      title,
+      message,
+      snackPosition: position,
+      duration: Duration(seconds: 2),
+      backgroundColor: backgroundColor.withOpacity(0.9),
+      colorText: Colors.white,
+      borderRadius: 10,
+      margin: EdgeInsets.all(10),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      icon: Icon(
+        icon,
+        color: Colors.white,
+        size: 28,
+      ),
+    );
+  }
+
+  // Cart Management Methods
+  void addToCart(FoodItem item) {
+    var existingItem = orderItems.firstWhere(
+          (element) => element.foodItem.name == item.name,
+      orElse: () => OrderItem(foodItem: item, quantity: 0),
+    );
+
+    if (existingItem.quantity == 0) {
+      orderItems.add(OrderItem(foodItem: item, quantity: 1));
+    } else {
+      existingItem.quantity++;
+      orderItems.refresh();
+    }
+
+    _updateCartMetrics();
+    _showCustomSnackbar(
+      title: 'Berhasil Ditambahkan',
+      message: '${item.name} telah ditambahkan ke keranjang',
+      icon: Icons.shopping_cart_checkout,
+    );
+  }
+
+  void removeFromCart(OrderItem item) {
+    if (item.quantity > 1) {
+      item.quantity--;
+      orderItems.refresh();
+    } else {
+      orderItems.remove(item);
+    }
+
+    _updateCartMetrics();
+    _showCustomSnackbar(
+      title: 'Item Dihapus',
+      message: '${item.foodItem.name} telah dihapus dari keranjang',
+      backgroundColor: Colors.orange,
+      icon: Icons.remove_shopping_cart,
+    );
+  }
+
+  void _updateCartMetrics() {
+    cartItems.value = orderItems.fold(0, (sum, item) => sum + item.quantity);
+    totalAmount.value = orderItems.fold(
+      0.0,
+          (sum, item) => sum + (item.foodItem.price * item.quantity),
+    );
+    discountAmount.value = totalAmount.value * 0.3;
+  }
+
+  // Coupon Management
+  void applyCoupon() {
+    if (discountAmount.value == 0) {
+      discountAmount.value = totalAmount.value * 0.3;
+      _showCustomSnackbar(
+        title: 'Kupon Berhasil',
+        message: 'Diskon 30% telah diterapkan',
+        backgroundColor: Colors.green,
+        icon: Icons.local_offer,
+      );
+    }
+  }
+
+  void removeCoupon() {
+    if (discountAmount.value > 0) {
+      discountAmount.value = 0;
+      _showCustomSnackbar(
+        title: 'Kupon Dihapus',
+        message: 'Diskon telah dihapus',
+        backgroundColor: Colors.orange,
+        icon: Icons.cancel,
+      );
+    }
+  }
+
+  void setDiscountPercentage(int percentage) {
+    // Calculate discount amount based on percentage
+    discountAmount.value = (totalAmount.value * percentage / 100);
+  }
+  // Order Placement and Management
+  Future<void> placeOrder() async {
+    // Validate order
+    if (orderItems.isEmpty) {
+      _showCustomSnackbar(
+        title: 'Pesanan Gagal',
+        message: 'Silakan tambahkan menu ke keranjang terlebih dahulu',
+        backgroundColor: Colors.red,
+        icon: Icons.error_outline,
+      );
+      return;
+    }
+
+    final OrderController orderController = Get.find();
+    // Generate order details
+    final orderNumber = 'INV-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+    final currentDate = DateFormat('dd MMMM yyyy').format(DateTime.now());
+
+    // Prepare order map
+    final orderDetails = {
+      'id': orderNumber,
+      'date': currentDate,
+      'status': 'Diproses',
+      'total': totalAmount.value - discountAmount.value,
+      'items': orderItems.map((item) => {
+        'name': item.foodItem.name,
+        'price': item.foodItem.price * item.quantity,
+        'quantity': item.quantity
+      }).toList()
+    };
+
+    // Tambahkan pesanan ke OrderController
+    orderController.addOrder(orderDetails);
+
+    // Show order confirmation dialog
+    await _showOrderConfirmationDialog(orderDetails);
+
+    // Clear cart after order placement
+    clearCart();
+  }
+
+  Future<void> _showOrderConfirmationDialog(Map<String, dynamic> orderDetails) {
+    return Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        title: Column(
+          children: [
+            Icon(
+              Icons.check_circle,
+              color: Colors.green,
+              size: 50,
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Pesanan Berhasil!',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Container(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildOrderInfoRow(
+                'Nomor Pesanan:',
+                orderDetails['id'],
+                Icons.receipt_long,
+              ),
+              SizedBox(height: 12),
+              _buildOrderInfoRow(
+                'Total Item:',
+                '${orderItems.fold(0, (sum, item) => sum + item.quantity)}',
+                Icons.shopping_basket,
+              ),
+              SizedBox(height: 12),
+              _buildOrderInfoRow(
+                'Total Bayar:',
+                'Rp ${orderDetails['total'].toStringAsFixed(0)}',
+                Icons.payments,
+              ),
+              SizedBox(height: 20),
+              Center(
+                child: Text(
+                  'Terima kasih telah memesan!',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Get.back(); // Close dialog
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'Selesai',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Utility method for order info row
+  Widget _buildOrderInfoRow(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: Colors.grey[600]),
+        SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
+        Spacer(),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Clear cart method
+  void clearCart() {
+    orderItems.clear();
+    cartItems.value = 0;
+    totalAmount.value = 0;
+    discountAmount.value = 0;
+  }
+
+  // Method to edit an existing order
+  void editOrder(Map<String, dynamic> order, double newTotal) {
+    final index = orders.indexWhere((o) => o['id'] == order['id']);
+    if (index != -1) {
+      orders[index]['total'] = newTotal;
+      _showCustomSnackbar(
+        title: 'Pesanan Diubah',
+        message: 'Total pesanan berhasil diperbarui',
+        backgroundColor: Colors.blue,
+        icon: Icons.edit,
+      );
+    }
+  }
+
+  // Method to cancel an existing order
+  void cancelOrder(Map<String, dynamic> order) {
+    final index = orders.indexWhere((o) => o['id'] == order['id']);
+    if (index != -1) {
+      orders[index]['status'] = 'Dibatalkan';
+      _showCustomSnackbar(
+        title: 'Pesanan Dibatalkan',
+        message: 'Pesanan telah berhasil dibatalkan',
+        backgroundColor: Colors.red,
+        icon: Icons.cancel,
+      );
+    }
+  }
+}
+
+// Order Item Model
+class OrderItem {
+  final FoodItem foodItem;
+  int quantity;
+
+  OrderItem({
+    required this.foodItem,
+    required this.quantity,
+  });
+}

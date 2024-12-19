@@ -1,0 +1,23 @@
+import 'package:get/get.dart';
+
+class OrderController extends GetxController {
+  var orders = <Map<String, dynamic>>[].obs;
+
+  void addOrder(Map<String, dynamic> order) {
+    orders.insert(0, order);
+  }
+
+  void editOrder(String orderId, double newTotal) {
+    final index = orders.indexWhere((o) => o['id'] == orderId);
+    if (index != -1) {
+      orders[index]['total'] = newTotal;
+    }
+  }
+
+  void cancelOrder(String orderId) {
+    final index = orders.indexWhere((o) => o['id'] == orderId);
+    if (index != -1) {
+      orders[index]['status'] = 'Dibatalkan';
+    }
+  }
+}

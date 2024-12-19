@@ -1,0 +1,547 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../theme/app_colors.dart';
+import '../widgets/custom_card.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'riwayat_pesanan.dart';
+
+class AccountView extends StatefulWidget {
+  @override
+  _AccountViewState createState() => _AccountViewState();
+}
+
+class _AccountViewState extends State<AccountView> {
+  File? _profileImage;
+  final ImagePicker _picker = ImagePicker();
+  static const String _profileImageKey = 'profileImagePath';
+  static const String _userNameKey = 'userName';
+  static const String _userEmailKey = 'userEmail';
+
+  String _userName = 'Jol';
+  String _userEmail = 'bajol@example.com';
+  final TextEditingController _nameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileData();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+      });
+      await _saveProfileImage(pickedFile.path);
+    }
+  }
+
+  Future<void> _deleteProfileImage() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_profileImageKey);
+    setState(() {
+      _profileImage = null;
+    });
+  }
+
+  Future<void> _saveProfileImage(String path) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_profileImageKey, path);
+  }
+
+  Future<void> _loadProfileData() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Load profile image
+    final path = prefs.getString(_profileImageKey);
+    if (path != null && File(path).existsSync()) {
+      setState(() {
+        _profileImage = File(path);
+      });
+    }
+
+    // Load username and email
+    final savedName = prefs.getString(_userNameKey);
+    final savedEmail = prefs.getString(_userEmailKey);
+
+    setState(() {
+      _userName = savedName ?? 'Jol';
+      _userEmail = savedEmail ?? 'bajol@example.com';
+    });
+  }
+
+  void _showNameEditDialog() {
+    _nameController.text = _userName;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Container(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Ubah Nama',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close, color: AppColors.textSecondary),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+
+                // Subtitle
+                Text(
+                  'Masukkan nama baru Anda',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                SizedBox(height: 16),
+
+                // Text Input
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.textSecondary.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: TextField(
+                    controller: _nameController,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 16,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Nama Lengkap',
+                      hintStyle: TextStyle(
+                        color: AppColors.textSecondary.withOpacity(0.5),
+                      ),
+                      prefixIcon: Icon(
+                        Icons.person_outline,
+                        color: AppColors.primary,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 15,
+                        horizontal: 10,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 24),
+
+                // Action Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: AppColors.primary),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                        ),
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(
+                          'Batal',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                        ),
+                        onPressed: () async {
+                          if (_nameController.text.trim().isNotEmpty) {
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setString(_userNameKey, _nameController.text.trim());
+
+                            setState(() {
+                              _userName = _nameController.text.trim();
+                            });
+
+                            Navigator.of(context).pop();
+                          } else {
+                            // Show error if name is empty
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Nama tidak boleh kosong'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                        child: Text(
+                          'Simpan',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildProfileCard() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: CustomCard(
+        child: Container(
+          padding: EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Stack(
+                children: [
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                        image: DecorationImage(
+                          image: _profileImage != null
+                              ? FileImage(_profileImage!)
+                              : AssetImage('assets/images/profile.jpg')
+                          as ImageProvider,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      child: Align(
+                        alignment: Alignment.bottomRight,
+                        child: CircleAvatar(
+                          backgroundColor: AppColors.primary,
+                          radius: 12,
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (_profileImage != null)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: _deleteProfileImage,
+                        child: CircleAvatar(
+                          backgroundColor: Colors.red.withOpacity(0.7),
+                          radius: 10,
+                          child: Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _userName,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: _showNameEditDialog,
+                          child: Icon(
+                            Icons.edit,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      _userEmail,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'Premium Member',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: EdgeInsets.all(20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Profil Saya',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.5,
+            ),
+          ),
+          Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.cardBackground,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.2),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    bool isLast = false,
+    VoidCallback? onTap,
+  }) {
+    return Column(
+      children: [
+        ListTile(
+          contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          leading: Container(
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primary.withOpacity(0.2), AppColors.primary.withOpacity(0.1)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.1),
+                  blurRadius: 6,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: AppColors.primary,
+              size: 26,
+            ),
+          ),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary.withOpacity(0.7),
+            ),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: AppColors.textSecondary.withOpacity(0.4),
+            size: 18,
+          ),
+          onTap: onTap,
+        ),
+        if (!isLast)
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: Divider(
+              height: 1,
+              thickness: 1,
+              color: AppColors.textSecondary.withOpacity(0.15),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildMenuSection() {
+    final menuItems = [
+      {
+        'icon': Icons.history_outlined,
+        'title': 'Riwayat',
+        'subtitle': 'Lihat riwayat pesanan',
+        'onTap': () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => OrdersPage()),
+          );
+        }
+      },
+      {'icon': Icons.settings_outlined, 'title': 'Pengaturan', 'subtitle': 'Notifikasi, keamanan, bahasa'},
+      {'icon': Icons.help_outline, 'title': 'Bantuan', 'subtitle': 'Pusat bantuan, hubungi kami'},
+      {'icon': Icons.logout_outlined, 'title': 'Keluar', 'subtitle': 'Keluar dari akun'},
+    ];
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 10),  // Added slight vertical spacing
+          Text(
+            'Menu',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.5,
+            ),
+          ),
+          SizedBox(height: 16),
+          CustomCard(
+            child: Column(
+              children: List.generate(
+                menuItems.length,
+                    (index) => _buildMenuItem(
+                  icon: menuItems[index]['icon'] as IconData,
+                  title: menuItems[index]['title'] as String,
+                  subtitle: menuItems[index]['subtitle'] as String,
+                  isLast: index == menuItems.length - 1,
+                  onTap: menuItems[index]['onTap'] as VoidCallback?,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: AnimationLimiter(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: AnimationConfiguration.toStaggeredList(
+                duration: const Duration(milliseconds: 375),
+                childAnimationBuilder: (widget) => SlideAnimation(
+                  horizontalOffset: 50.0,
+                  child: FadeInAnimation(child: widget),
+                ),
+                children: [
+                  _buildHeader(),
+                  _buildProfileCard(),
+                  _buildMenuSection(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

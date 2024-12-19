@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "138361817427",
+    "project_id": "lesehan-84f2b",
+    "storage_bucket": "lesehan-84f2b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:138361817427:android:2c363c6e2bcc5c48fcb9a6",
+        "android_client_info": {
+          "package_name": "com.example.lesehan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB25gOT1tE4yxn4a3WXrag8UWtRtFVmIVQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

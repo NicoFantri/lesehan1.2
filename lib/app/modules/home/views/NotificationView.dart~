@@ -1,0 +1,152 @@
+import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+import 'package:get/get.dart';
+
+class NotificationView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          onPressed: () => Get.back(),
+        ),
+        title: Text(
+          'Notifications',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      body: ListView(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        children: [
+          _buildNotificationSection('Today'),
+          _buildNotificationItem(
+            icon: Icons.local_offer,
+            title: '30% Discount Promo',
+            subtitle: 'Special offer for today, order now!',
+            time: 'Just now',
+            isUnread: true,
+          ),
+          _buildNotificationItem(
+            icon: Icons.delivery_dining,
+            title: 'Order Delivered',
+            subtitle: 'Your order #12345 has been delivered',
+            time: '2 hours ago',
+          ),
+          SizedBox(height: 16),
+          _buildNotificationSection('This Week'),
+          _buildNotificationItem(
+            icon: Icons.restaurant,
+            title: 'New Menu Available',
+            subtitle: 'Check out our latest menu items',
+            time: '3 days ago',
+          ),
+          _buildNotificationItem(
+            icon: Icons.local_shipping,
+            title: 'Shipping Update',
+            subtitle: 'Your order is on the way',
+            time: '5 days ago',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationSection(String title) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 12),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String time,
+    bool isUnread = false,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 15,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.all(12),
+        leading: Container(
+          padding: EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isUnread ? AppColors.secondary.withOpacity(0.2) : AppColors.secondary.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            icon,
+            color: AppColors.primary,
+            size: 28,
+          ),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              time,
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+        trailing: isUnread
+            ? Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: AppColors.accent,
+            shape: BoxShape.circle,
+          ),
+        )
+            : null,
+      ),
+    );
+  }
+}
