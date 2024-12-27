@@ -6,6 +6,8 @@ import '../theme/app_colors.dart';
 import '../widgets/custom_card.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'riwayat_pesanan.dart';
+import 'food_review_page.dart';
+
 
 class AccountView extends StatefulWidget {
   @override
@@ -476,6 +478,17 @@ class _AccountViewState extends State<AccountView> {
           );
         }
       },
+      {
+        'icon': Icons.rate_review_outlined,
+        'title': 'Review Makanan',
+        'subtitle': 'Berikan penilaian untuk pesanan Anda',
+        'onTap': () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => FoodReviewPage()),
+          );
+        }
+      },
       {'icon': Icons.settings_outlined, 'title': 'Pengaturan', 'subtitle': 'Notifikasi, keamanan, bahasa'},
       {'icon': Icons.help_outline, 'title': 'Bantuan', 'subtitle': 'Pusat bantuan, hubungi kami'},
       {'icon': Icons.logout_outlined, 'title': 'Keluar', 'subtitle': 'Keluar dari akun'},
@@ -486,7 +499,7 @@ class _AccountViewState extends State<AccountView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 10),  // Added slight vertical spacing
+          SizedBox(height: 10),
           Text(
             'Menu',
             style: TextStyle(

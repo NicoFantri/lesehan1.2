@@ -9,7 +9,7 @@ import 'app/modules/home/controllers/adminvouchercontroller.dart';
 void main() async {
   Get.put(OrderController());
   Get.put(VoucherController());
-
+ 
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,

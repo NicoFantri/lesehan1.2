@@ -8,7 +8,8 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'older_view.dart.';
 import 'account_view.dart';
 import 'pengiriman.dart';
-import 'category_menu_view.dart';// Add this import
+import 'category_menu_view.dart';// Add this impor
+import 'notificationview.dart';// t
 
 class HomeView extends StatelessWidget {
   final HomeController controller = Get.put(HomeController());
@@ -92,7 +93,7 @@ class HomeView extends StatelessWidget {
                   ],
                 ),
 
-                IconButton(
+                child: IconButton(
                   icon: Icon(Icons.notifications_outlined, size: 28),
                   color: AppColors.primary,
                   onPressed: () {

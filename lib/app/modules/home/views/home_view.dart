@@ -133,7 +133,7 @@ class HomeView extends StatelessWidget {
             Expanded(
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Masukan kode tiketmu disini',
+                  hintText: 'Masukan kode voucher disini',
                   hintStyle: TextStyle(
                     color: AppColors.textSecondary.withOpacity(0.7),
                     fontSize: 16,
